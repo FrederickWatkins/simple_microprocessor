@@ -25,8 +25,8 @@ module alu #(
 )(
     input clk,
     input [2:0] operator,
+    input [data_width-1:0] operand_0,
     input [data_width-1:0] operand_1,
-    input [data_width-1:0] operand_2,
     output [data_width-1:0] result
 );
 endmodule

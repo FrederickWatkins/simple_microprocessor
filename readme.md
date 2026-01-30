@@ -17,3 +17,6 @@ All instructions use immediate value only if rs=r0 (r0 is hardwired to all zeros
 | rr rs, rd, imm | 'b1010 | Rotate right rd by rs (imm) bits and store result in rd |
 | rl rs, rd, imm | 'b1011 | Rotate left rd by rs (imm) bits and store result in rd |
 
+
+|imm[15:8]|rd[7:6]|rs[5:4]|opcode[3:0]|
+|---|---|---|---|
