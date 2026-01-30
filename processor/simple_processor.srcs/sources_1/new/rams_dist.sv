@@ -17,7 +17,7 @@ module rams_dist #(
     output wire [data_width-1:0] rw_data_out
 );
 
-    reg [data_width:0] ram [(1<<addr_width)-1:0];
+    reg [data_width-1:0] ram [(1<<addr_width)-1:0];
 
     assign ram[0] = 0;
 

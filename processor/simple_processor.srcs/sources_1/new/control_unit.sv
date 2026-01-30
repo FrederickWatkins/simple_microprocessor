@@ -36,8 +36,8 @@ module control_unit #(
     input [instr_width-1:0] instr,
 
     // Bus control
-    output logic bus_0_sel,
-    output logic bus_1_sel,
+    output logic [1:0] bus_0_sel,
+    output logic [1:0] bus_1_sel,
 
     // Register file control
     output logic rd_we,
@@ -75,7 +75,7 @@ module control_unit #(
     localparam le = 'b0110;
     localparam move = 'b0111;
 
-    localparam arithmetic = 'b1xxx;
+    localparam arithmetic = 'b1zzz;
 
     // Reprogamming values
     localparam reprog_mm = 'b01;
@@ -105,7 +105,7 @@ module control_unit #(
         mm_we = 0;
         reset = 0;
         hold = 0;
-        case(opcode)
+        casez(opcode)
         nop: begin end
 
         call: begin
@@ -120,9 +120,10 @@ module control_unit #(
             // Unimplemented TODO: Add equal flag
         end
         lw: begin
-            bus_0_sel = 1;
-            rd_we = 1;
             hold = 1;
+            if(prev_hold == 1)
+                bus_0_sel = 1;
+                rd_we = 1; 
         end
         sw: begin
             mm_we = 1;
@@ -133,6 +134,10 @@ module control_unit #(
         move: begin
             rd_we = 1;
             rd_in_sel = select_bus_1;
+        end
+        arithmetic: begin
+            rd_we = 1;
+            rd_in_sel = select_alu;
         end
         endcase
         if(prev_hold)

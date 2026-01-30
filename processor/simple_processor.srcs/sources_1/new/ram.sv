@@ -14,7 +14,7 @@ module ram #(
     output wire [data_width-1:0] read_data
 );
 
-    reg [data_width:0] ram [(1<<addr_width)-1:0];
+    reg [data_width-1:0] ram [(1<<addr_width)-1:0];
 
     // Synchronous Write: Data is stored on the rising edge
     always @(posedge clk) begin

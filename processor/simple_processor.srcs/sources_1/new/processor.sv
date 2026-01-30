@@ -35,7 +35,7 @@ module processor (
     wire reset;
 
     // Bus 0
-    wire bus_0_sel;
+    wire [1:0] bus_0_sel;
     wire [data_width-1:0] bus_0_inputs [2:0];
     wire [data_width-1:0] bus_0_output;
 
@@ -51,7 +51,7 @@ module processor (
     );
 
     // Bus 1
-    wire bus_1_sel;
+    wire [1:0] bus_1_sel;
     wire [data_width-1:0] bus_1_inputs [2:0];
     wire [data_width-1:0] bus_1_output;
 
@@ -75,9 +75,9 @@ module processor (
     reg [data_width-1:0] rd_in;
     wire [data_width-1:0] rd_out;
 
-    assign bus_0_inputs[0] = rs;
+    assign bus_0_inputs[0] = rd_out;
 
-    assign bus_1_inputs[0] = rd_out;
+    assign bus_1_inputs[0] = rs;
 
     localparam select_bus_0 = 'b00;
     localparam select_bus_1 = 'b01;
@@ -117,7 +117,6 @@ module processor (
     alu #(
         .data_width(data_width)
     ) alu_0 (
-        .clk(clk),
         .operator(alu_opcode),
         .operand_0(bus_0_output),
         .operand_1(bus_1_output),

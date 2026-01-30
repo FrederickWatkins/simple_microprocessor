@@ -23,10 +23,26 @@
 module alu #(
     parameter data_width = 8
 )(
-    input clk,
     input [2:0] operator,
     input [data_width-1:0] operand_0,
     input [data_width-1:0] operand_1,
-    output [data_width-1:0] result
+    output logic [data_width-1:0] result
 );
+    // Operators
+
+    localparam add = 'b000;
+    localparam sub = 'b001;
+    localparam rr = 'b010;
+    localparam rl = 'b011;
+
+    always @(*)
+    begin
+        case(operator)
+        add: result = operand_0 + operand_1;
+        sub: result = operand_0 - operand_1;
+        rr: result = operand_0 >> operand_1;
+        rl: result = operand_0 << operand_1;
+        default: result = operand_0;
+        endcase
+    end
 endmodule
