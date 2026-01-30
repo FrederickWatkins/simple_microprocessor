@@ -3,6 +3,7 @@ module rams_dist #(
     parameter data_width = 8
 )(
     input  wire        clk,
+    input wire reset,
     input  wire        write_enable,
     
     
@@ -25,6 +26,9 @@ module rams_dist #(
         if (write_enable & rw_addr != 0) begin
             ram[rw_addr] <= rw_data_in;
         end
+        if(reset)
+            foreach (ram[i])
+                ram[i] <= 0;
     end
 
     // Asynchronous Read: Output changes immediately when read_addr changes

@@ -52,8 +52,19 @@ module control_unit #(
     output [2:0] alu_opcode,
 
     // Program counter control
-    output logic jmp_enable
+    output logic jmp_enable,
+    output logic hold,
+
+    // Instruction memory control
+    output logic instr_we,
+
+    // Main memory control
+    output logic mm_we,
+
+    // Reprogramming controls
+    output logic reset
 );
+    // Opcodes
     localparam nop = 'b0000;
 
     localparam call = 'b0001;
@@ -66,6 +77,11 @@ module control_unit #(
 
     localparam arithmetic = 'b1xxx;
 
+    // Reprogamming values
+    localparam reprog_mm = 'b01;
+    localparam reprog_instr = 'b10;
+    localparam reprog_reset = 'b11;
+
     wire [opcode_width-1:0] opcode;
     
     assign opcode = instr[opcode_width-1:0];
@@ -75,18 +91,20 @@ module control_unit #(
 
     assign alu_opcode = opcode[2:0];
 
-    // Use imm if rs is r0
-    always @(*) begin
-        bus_1_sel = 0;
-        if(rs_addr==0)
-            bus_1_sel = 1;
-    end
+    reg prev_hold;
 
     always @(*) begin
         bus_0_sel = 0;
+        bus_1_sel = 0;
+        if(rs_addr==0)
+            bus_1_sel = 1; // Use imm if rs is r0
         rd_we = 0;
         rd_in_sel = select_bus_0;
         jmp_enable = 0;
+        instr_we = 0;
+        mm_we = 0;
+        reset = 0;
+        hold = 0;
         case(opcode)
         nop: begin end
 
@@ -102,10 +120,12 @@ module control_unit #(
             // Unimplemented TODO: Add equal flag
         end
         lw: begin
-            // Unimplemented TODO: Add main memory
+            bus_0_sel = 1;
+            rd_we = 1;
+            hold = 1;
         end
         sw: begin
-            // Unimplemented TODO: Add main memory
+            mm_we = 1;
         end
         le: begin
             // Unimplemented TODO: Add equal flag
@@ -115,5 +135,28 @@ module control_unit #(
             rd_in_sel = select_bus_1;
         end
         endcase
+        if(prev_hold)
+            hold = 0;
+        
+        // Reprogramming/reset
+        case(reprog)
+        reprog_mm: begin
+            reset = 1;
+            mm_we = 1;
+            bus_0_sel = 2;
+            bus_1_sel = 2;
+        end
+        reprog_instr: begin
+            reset = 1;
+            instr_we = 1;
+        end
+        reprog_reset: begin
+            reset = 1;
+        end
+        endcase
+    end
+
+    always @(posedge clk) begin
+        prev_hold <= hold;
     end
 endmodule

@@ -22,22 +22,28 @@
 
 module processor (
     input clk,
+    // Programming interface
     input [1:0] reprog,
-    input [data_width-1:0] instr_addr,
-    input [instr_width-1:0] instr_in
+    input [data_width-1:0] reprog_addr,
+    input [instr_width-1:0] reprog_data
     );
     localparam opcode_width = 4; // 16 instructions
     localparam reg_addr_width = 2; // 4 registers
     localparam data_width = 8; // Same as main memory address width
     localparam instr_width = opcode_width + 2 * reg_addr_width + data_width;
 
+    wire reset;
+
     // Bus 0
     wire bus_0_sel;
-    wire [data_width-1:0] bus_0_inputs [1:0];
+    wire [data_width-1:0] bus_0_inputs [2:0];
     wire [data_width-1:0] bus_0_output;
+
+    assign bus_0_inputs[2] = reprog_data;
+
     bus #(
         .data_width(data_width),
-        .input_depth(1)
+        .input_depth(2)
     ) bus_0 (
         .input_selector(bus_0_sel),
         .data_in(bus_0_inputs),
@@ -46,11 +52,14 @@ module processor (
 
     // Bus 1
     wire bus_1_sel;
-    wire [data_width-1:0] bus_1_inputs [1:0];
+    wire [data_width-1:0] bus_1_inputs [2:0];
     wire [data_width-1:0] bus_1_output;
+
+    assign bus_1_inputs[2] = reprog_addr;
+
     bus #(
         .data_width(data_width),
-        .input_depth(1)
+        .input_depth(2)
     ) bus_1 (
         .input_selector(bus_1_sel),
         .data_in(bus_1_inputs),
@@ -90,6 +99,7 @@ module processor (
         .data_width(data_width)
     ) reg_file (
         .clk(clk),
+        .reset(reset),
         .write_enable(rd_we),
 
         .read_addr(rs_addr),
@@ -117,6 +127,7 @@ module processor (
     // Control unit
     wire [instr_width-1:0] curr_instr;
     wire [data_width-1:0] cu_imm;
+    wire hold;
     wire jmp_enable;
 
     assign bus_1_inputs[1] = cu_imm;
@@ -146,7 +157,14 @@ module processor (
 
         .alu_opcode(alu_opcode),
 
-        .jmp_enable(jmp_enable)
+        .hold(hold),
+        .jmp_enable(jmp_enable),
+
+        .instr_we(instr_we),
+
+        .mm_we(mm_we),
+
+        .reset(reset)
     );
 
     // Program counter
@@ -157,11 +175,45 @@ module processor (
         .addr_width(data_width)
     ) pc_0 (
         .clk(clk),
+        .reset(reset),
+        .hold(hold),
 
         .jmp_enable(jmp_enable),
         .jmp_addr(bus_1_output),
 
         .inc_addr(pc_inc_addr),
         .next_addr(pc_next_addr)
+    );
+
+    // Instruction memory
+    wire instr_we;
+    sync_ram #(
+        .addr_width(data_width),
+        .data_width(instr_width)
+    ) instr_mem (
+        .clk(clk),
+        .write_enable(instr_we),
+
+        .write_addr(reprog_addr),
+        .write_data(reprog_data),
+
+        .read_addr(pc_next_addr),
+        .read_data(curr_instr)
+    );
+
+    // Main memory
+    wire mm_we;
+    sync_ram #(
+        .addr_width(data_width),
+        .data_width(data_width)
+    ) main_mem (
+        .clk(clk),
+        .write_enable(mm_we),
+
+        .write_addr(bus_1_output),
+        .write_data(bus_0_output),
+
+        .read_addr(bus_1_output),
+        .read_data(bus_0_inputs[1])
     );
 endmodule
