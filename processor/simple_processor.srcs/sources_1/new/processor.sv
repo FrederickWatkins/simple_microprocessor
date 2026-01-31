@@ -113,6 +113,7 @@ module processor (
     // ALU
     wire [2:0] alu_opcode;
     wire [data_width-1:0] alu_res;
+    wire zero;
 
     alu #(
         .data_width(data_width)
@@ -120,6 +121,7 @@ module processor (
         .operator(alu_opcode),
         .operand_0(bus_0_output),
         .operand_1(bus_1_output),
+        .zero(zero),
         .result(alu_res)
     );
 
@@ -143,6 +145,7 @@ module processor (
         .clk(clk),
         .reprog(reprog),
         .instr(curr_instr),
+        .zero(zero),
 
         .bus_0_sel(bus_0_sel),
         .bus_1_sel(bus_1_sel),

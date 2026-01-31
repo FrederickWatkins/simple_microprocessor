@@ -26,6 +26,7 @@ module alu #(
     input [2:0] operator,
     input [data_width-1:0] operand_0,
     input [data_width-1:0] operand_1,
+    output logic zero,
     output logic [data_width-1:0] result
 );
     // Operators
@@ -34,15 +35,24 @@ module alu #(
     localparam sub = 'b001;
     localparam rr = 'b010;
     localparam rl = 'b011;
+    localparam mul = 'b100;
+    localparam div = 'b101;
+    localparam rem = 'b110;
 
     always @(*)
     begin
+        zero = 0;
         case(operator)
         add: result = operand_0 + operand_1;
         sub: result = operand_0 - operand_1;
         rr: result = operand_0 >> operand_1;
         rl: result = operand_0 << operand_1;
+        mul: result = operand_0 * operand_1;
+        div: result = operand_0 / operand_1;
+        rem: result = operand_0 % operand_1;
         default: result = operand_0;
         endcase
+        if(result == 0)
+            zero = 1;
     end
 endmodule

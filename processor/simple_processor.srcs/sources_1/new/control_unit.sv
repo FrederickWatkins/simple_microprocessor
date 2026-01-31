@@ -34,6 +34,7 @@ module control_unit #(
     input clk,
     input [1:0] reprog,
     input [instr_width-1:0] instr,
+    input zero,
 
     // Bus control
     output logic [1:0] bus_0_sel,
@@ -69,10 +70,10 @@ module control_unit #(
 
     localparam call = 'b0001;
     localparam jmp = 'b0010;
-    localparam jmpne = 'b0011;
+    localparam jmpz = 'b0011;
     localparam lw = 'b0100;
     localparam sw = 'b0101;
-    localparam le = 'b0110;
+    localparam jmpnz = 'b0110;
     localparam move = 'b0111;
 
     localparam arithmetic = 'b1zzz;
@@ -92,6 +93,8 @@ module control_unit #(
     assign alu_opcode = opcode[2:0];
 
     reg prev_hold;
+
+    reg zero_flag;
 
     always @(*) begin
         bus_0_sel = 0;
@@ -116,8 +119,9 @@ module control_unit #(
         jmp: begin
             jmp_enable = 1;
         end
-        jmpne: begin
-            // Unimplemented TODO: Add equal flag
+        jmpz: begin
+            if(zero_flag)
+                jmp_enable = 1;
         end
         lw: begin
             hold = 1;
@@ -128,8 +132,9 @@ module control_unit #(
         sw: begin
             mm_we = 1;
         end
-        le: begin
-            // Unimplemented TODO: Add equal flag
+        jmpnz: begin
+            if(~zero_flag)
+                jmp_enable = 1;
         end
         move: begin
             rd_we = 1;
@@ -163,5 +168,6 @@ module control_unit #(
 
     always @(posedge clk) begin
         prev_hold <= hold;
+        zero_flag <= zero;
     end
 endmodule
