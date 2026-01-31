@@ -41,3 +41,7 @@ The cpu uses two main data buses, bus 0 is fed by rd and main memory, and bus 1 
 The ALU has no accumulator, instead feeding directly to the register file write port.
 
 The memory model is a full harvard architecture, keeping instruction memory completely seperate to data. Reprogramming is done through an external interface, stalling the cpu and switching the bus connections to allow the programming interface to write directly into the memories.
+
+## Assembler
+
+I was considering writing the assembler myself, but I've written parsers in the past, and needless to say the experience hasn't given me a particular inclination to do so again. Ultimately I told google gemini what I wanted and it did a good enough job to test the cpu (note the fizzbuzz program in simple_microprocessor/assembler, which creates arrays of multiples of 3 from 0x02 and of multiples of 5 from 0xA0).
